@@ -1,0 +1,9 @@
+header div.logo {
+  background-image: url("./assets/logo.png");
+  background-position: center;
+  background-size: cover;
+}
+
+div.movieCard {
+  min-width: 10rem;
+}

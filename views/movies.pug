@@ -1,0 +1,38 @@
+- const platforms = [{name: 'netflix', url: 'https://www.netflix.com', image: 'https://i.imgur.com/KBhgFEs.jpg'}, {name: 'amazonPrime', url: 'https://www.primevideo.com', image: 'https://i.imgur.com/CTmWLLv.jpg'}, {name: 'hulu', url: 'https://www.hulu.com', image: 'https://i.imgur.com/WozONVD.jpg'}, {name: 'disneyPlus', url: 'https://www.disneyplus.com/', image: 'https://i.imgur.com/xRtpNtg.jpg'}, {name: 'hboMax', url: 'https://www.hbomax.com/', image: 'https://i.imgur.com/kGdsigi.jpg'}, {name: 'starPlus', url: 'https://www.starplus.com/', image: 'https://i.imgur.com/FKYM3DM.jpg'}]
+
+mixin platformLogo(platformImage)
+    div(style=`background-image: url("${platformImage}"); background-position: center; background-size: cover;` class="rounded w-8 h-8")
+
+mixin movieCard(movie)
+    div(class="flex movieCard rounded w-1/3")
+        div(class="movieCard__img rounded w-2/5 h-48 md:h-72" style=`background-image: url("${movie.photo}"); background-position: center; background-size: cover;`)
+        div(class="movieCard__info flex-grow flex flex-col justify-between w-3/5 h-48 md:h-72 shadow rounded")
+            div(class="px-4")
+                h3(class="font-semibold text-center mb-8")= movie.title 
+                p(class="text-sm") Director: 
+                    span(class="text-gray-500")= movie.director
+                p(class="text-sm") Year: 
+                    span(class="text-gray-500")= movie.year
+                p(class="text-sm") Genres: 
+                    span(class="text-gray-500")= movie.genres.reduce((acc,current) => `${acc}, ${current}`).toLowerCase()
+
+            div(class="flex gap-px p-3")
+                each platform in platforms.filter(p => movie[p.name])
+                    a(href=platform.url target="_blank")
+                        +platformLogo(platform.image)
+                else
+                    p(class="text-sm text-gray-500") This movie is not available yet.
+                
+
+
+include partials/head.pug
+include partials/header.pug
+main(class="flex-grow flex flex-col items-center justify-center gap-8 font-mono")
+    form(action="/movies/search" method="GET" class="flex gap-3 justify-center sticky top-20 w-full pt-8 pb-4" style="background-color: #fcfefc;")
+        label(for="title") Search a movie: 
+        input(type="search" id="title" name="title" class="border border-gray-400 rounded px-3 py-px focus:outline-none w-64 text-center" required)
+        input(type="submit" value="Search" class="py-px px-4 bg-green-500 text-white rounded cursor-pointer text-sm")
+    section(class="flex flex-wrap justify-center w-full gap-4")
+        each movie in movies 
+            +movieCard(movie)
+include partials/footer.pug
