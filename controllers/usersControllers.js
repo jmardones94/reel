@@ -1,5 +1,6 @@
 const User = require("../models/User")
 const bcryptjs = require("bcryptjs")
+const Movie = require("../models/Movie")
 
 const usersControllers = {
   signup: async (req, res) => {
@@ -16,6 +17,7 @@ const usersControllers = {
       req.session.name = user.name
       req.session.email = user.email
       req.session.admin = user.admin
+      req.session.favorites = user.favorites
       res.redirect("/")
     } catch (e) {
       res.render("signup", {
@@ -36,6 +38,7 @@ const usersControllers = {
       req.session.name = user.name
       req.session.email = user.email
       req.session.admin = user.admin
+      req.session.favorites = user.favorites.map((f) => f.toString())
       res.redirect("/")
     } catch (e) {
       res.render("login", {
@@ -43,6 +46,29 @@ const usersControllers = {
         error: e.message,
         user: { loggedIn: false },
       })
+    }
+  },
+  toggleFavorites: async (req, res) => {
+    const { loggedIn, name, email, admin, favorites } = req.session
+    try {
+      let user
+      if (favorites.map((f) => f.toString()).includes(req.params.id)) {
+        user = await User.findOneAndUpdate(
+          { email },
+          { $pull: { favorites: req.params.id } },
+          { new: true }
+        )
+      } else {
+        user = await User.findOneAndUpdate(
+          { email },
+          { $addToSet: { favorites: req.params.id } },
+          { new: true }
+        )
+      }
+      req.session.favorites = user.favorites.map((f) => f.toString())
+      res.redirect(`/movie/${req.params.id}`)
+    } catch (e) {
+      res.redirect("/")
     }
   },
 }

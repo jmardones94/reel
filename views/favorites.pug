@@ -1,5 +1,11 @@
 include partials/head.pug
 include partials/header.pug
-main(class="flex-grow flex items-center justify-center")
-    h1 Favorites area.
+main(class="flex-grow flex flex-wrap items-center justify-center font-mono gap-2")
+    each favorite in favorites
+        div(class="flex flex-col items-center justify-center")
+            h3= favorite.title.split('-')[0]
+            a(href=`/movie/${favorite._id}`)
+                img(class="w-full w-52 h-80 rounded" src=favorite.photo)
+    else
+        p You have no favorites movies yet.
 include partials/footer.pug

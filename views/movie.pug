@@ -1,0 +1,11 @@
+include mixins/_mixins
+include partials/head.pug
+include partials/header.pug
+main(class="flex w-full flex-col items-center justify-center")
+    h1(class="text-center text-2xl font-mono py-5 font-bold")= movie.title
+    div(class="w-full md:w-2/3 flex mt-5 flex-wrap gap-2 rounded z-40 justify-center overflow-hidden")
+        img(src=movie.photo alt=movie.title class="order-3 sm:order-1 h-96 rounded")
+        iframe(class="h-96 w-full sm:w-auto order-2 flex-grow rounded" src=movie.trailer title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen)
+    div(class="w-full flex justify-center items-center -mt-8 -z-1 rounded relative")
+        +comments(movie)
+include partials/footer.pug

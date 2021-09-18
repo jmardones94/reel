@@ -1,0 +1,98 @@
+- const platforms = [{name: 'netflix', url: 'https://www.netflix.com', image: 'https://i.imgur.com/KBhgFEs.jpg'}, {name: 'amazonPrime', url: 'https://www.primevideo.com', image: 'https://i.imgur.com/CTmWLLv.jpg'}, {name: 'hulu', url: 'https://www.hulu.com', image: 'https://i.imgur.com/WozONVD.jpg'}, {name: 'disneyPlus', url: 'https://www.disneyplus.com/', image: 'https://i.imgur.com/xRtpNtg.jpg'}, {name: 'hboMax', url: 'https://www.hbomax.com/', image: 'https://i.imgur.com/kGdsigi.jpg'}, {name: 'starPlus', url: 'https://www.starplus.com/', image: 'https://i.imgur.com/FKYM3DM.jpg'}]
+
+mixin platformLogo(platformImage)
+    div(style=`background-image: url("${platformImage}"); background-position: center; background-size: cover;` class="rounded w-8 h-8")
+
+mixin movieCard(movie)
+    div(class="flex movieCard rounded w-full")
+        a(href=`/movie/${movie._id}` class="movieCard__img rounded w-2/5 min-h-full" style=`background-image: url("${movie.photo}"); background-position: center; background-size: cover;`)      
+        div(class="movieCard__info flex-grow flex flex-col justify-between h-72 w-3/5 shadow rounded")
+            div(class="px-4")
+                h3(class="font-semibold text-center mb-8")= movie.title 
+                p(class="text-sm") Director: 
+                    span(class="text-gray-500")= movie.director
+                p(class="text-sm") Year: 
+                    span(class="text-gray-500")= movie.year
+                p(class="text-sm") Genres: 
+                    span(class="text-gray-500")= movie.genres.reduce((acc,current) => `${acc}, ${current}`).toLowerCase()
+                p(class="text-sm") Ranking: 
+                    span(class="text-gray-500")= movie.critics.length ? `${movie.critics.reduce((a,b) => a + b.rate/movie.critics.length, 0)}/5 (${movie.critics.length} votes)` : 'Not Rated'
+            div(class="flex gap-px p-3")
+                each platform in platforms.filter(p => movie[p.name])
+                    a(href=platform.url target="_blank")
+                        +platformLogo(platform.image)
+                else
+                    p(class="text-sm text-gray-500") This movie is not available yet.
+
+mixin comments(movie)
+    div(class="shadow-lg md:w-5/6 rounded pt-8 bg-gray-50 -z-1 font-mono relative")
+        div(class="flex justify-end")
+            a(href=`/user/favorite/${movie._id}` class="mr-10 w-8 h-8 text-red-600 cursor-pointer") 
+                if user.loggedIn
+                    if user.favorites.includes(movie._id.toString())
+                        <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.5 2a.5.5 0 00-.5.5v11.066l4-2.667 4 2.667V8.5a.5.5 0 011 0v6.934l-5-3.333-5 3.333V2.5A1.5 1.5 0 014.5 1h4a.5.5 0 010 1h-4z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M15.854 2.146a.5.5 0 010 .708l-3 3a.5.5 0 01-.708 0l-1.5-1.5a.5.5 0 01.708-.708L12.5 4.793l2.646-2.647a.5.5 0 01.708 0z" clip-rule="evenodd"></path></svg>
+                    else
+                        <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.5 2a.5.5 0 00-.5.5v11.066l4-2.667 4 2.667V8.5a.5.5 0 011 0v6.934l-5-3.333-5 3.333V2.5A1.5 1.5 0 014.5 1h4a.5.5 0 010 1h-4zm9-1a.5.5 0 01.5.5v2a.5.5 0 01-.5.5h-2a.5.5 0 010-1H13V1.5a.5.5 0 01.5-.5z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M13 3.5a.5.5 0 01.5-.5h2a.5.5 0 010 1H14v1.5a.5.5 0 01-1 0v-2z" clip-rule="evenodd"></path></svg>
+        h2(class="text-center text-lg font-semibold my-4 underline") Details
+        div(class="w-full flex justify-center")
+            div(class="md:w-1/2")
+                p(class="text-sm font-semibold") Director: 
+                    span(class="text-gray-500 font-normal")= movie.director
+                p(class="text-sm font-semibold") Year: 
+                    span(class="text-gray-500 font-normal")= movie.year
+                p(class="text-sm font-semibold") Genres: 
+                    span(class="text-gray-500 font-normal")= movie.genres.reduce((acc,current) => `${acc}, ${current}`).toLowerCase()
+                p(class="text-sm font-semibold") Ranking: 
+                    span(class="text-gray-500 font-normal")= movie.critics.length ? `${movie.critics.reduce((a,b) => a + b.rate/movie.critics.length, 0)}/5 (${movie.critics.length} votes)` : 'Not Rated'
+                p(class="text-sm font-semibold") Plot: 
+                    span(class="text-gray-500 font-normal")= movie.plot 
+                p(class="text-sm font-semibold") Duration: 
+                    span(class="text-gray-500 font-normal") #{movie.duration} min.
+
+        h2(class="text-center text-lg font-semibold my-4 underline") Reviews
+        each critic in movie.critics
+            +review(critic)
+        else
+            p(class="text-center py-24 font-semibold") There are no reviews yet. Be the first!
+        if user.loggedIn
+            if movie.critics.some(c => c.user.email === user.email)
+                p(class="w-full items-center justify-center flex gap-2 my-5 ") You already rated this movie <span class="text-blue-500 flex items-center h-4 w-4 inline-block"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></span>
+            else
+                div(class="w-full flex justify-center")
+                    form(action=`/movie/add-comment/${movie._id}` method="post" class="w-full md:w-2/3 flex flex-col gap-2 mt-16 mb-8")
+                        div(class="flex items-center justify-between flex-col md:flex-row")
+                            label(for="rate" class="font-semibold flex-grow text-center") Rate this movie <br> <span class="text-gray-400 text-sm flex items-center justify-center">from 1 to 5 <span class="items-center h-5 w-5 text-yellow-300 inline-block"><svg stroke="currentColor" fill="currentColor" stroke-width="0" version="1.2" baseProfile="tiny" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3.1 11.3l3.6 3.3-1 4.6c-.1.6.1 1.2.6 1.5.2.2.5.3.8.3.2 0 .4 0 .6-.1 0 0 .1 0 .1-.1l4.1-2.3 4.1 2.3s.1 0 .1.1c.5.2 1.1.2 1.5-.1.5-.3.7-.9.6-1.5l-1-4.6c.4-.3 1-.9 1.6-1.5l1.9-1.7.1-.1c.4-.4.5-1 .3-1.5s-.6-.9-1.2-1h-.1l-4.7-.5-1.9-4.3s0-.1-.1-.1c-.1-.7-.6-1-1.1-1-.5 0-1 .3-1.3.8 0 0 0 .1-.1.1l-1.9 4.3-4.7.5h-.1c-.5.1-1 .5-1.2 1-.1.6 0 1.2.4 1.6z"></path></svg></span>
+                            div(class="flex w-full md:w-2/3 gap-2")
+                                p(class="px-6 py-1 bg-red-500 text-white rounded font-bold cursor-pointer" onclick="if (document.getElementById('rate').value > 1) {document.getElementById('rate').value--}") -
+                                input(type="number" class="flex-grow px-3 focus:outline-none text-center" readonly value="1" id="rate" name="rate" min=1 max=5 required)
+                                p(class="px-6 py-1 bg-red-500 text-white rounded font-bold cursor-pointer" onclick="if (document.getElementById('rate').value < 5) {document.getElementById('rate').value++}") +
+                        div(class="flex w-full flex-col md:flex-row items-center justify-between")
+                            label(for="content" class="font-semibold flex-grow text-center") Write your review 
+                            textarea(name="content" class="w-full md:w-2/3 h-32 focus:outline-none p-3" id="content" style="resize: none;" required)
+                        div(class="w-full flex justify-end")
+                            input(type="submit" value="Send" class="bg-green-500 text-white py-1 rounded w-2/3")
+        else
+            p(class="text-center my-5") <a href="/login" class="underline text-gray-700 font-semibold">Log In</a> to rate this movie!
+
+
+mixin review(critic)
+    div(class="flex justify-center w-full gap-2 mb-6")
+        div(class="flex w-full md:w-1/2 flex-col")
+            div(class="flex justify-between")
+                p(class="font-semibold inline-block") - #{critic.user.name}<span class="font-medium">'s review</span>:
+                p(class="flex items-center inline-block") #{critic.rate}<span class="text-gray-400">/5</span>
+                    span(class="items-center h-5 w-5 text-yellow-300 inline-block") <svg stroke="currentColor" fill="currentColor" stroke-width="0" version="1.2" baseProfile="tiny" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3.1 11.3l3.6 3.3-1 4.6c-.1.6.1 1.2.6 1.5.2.2.5.3.8.3.2 0 .4 0 .6-.1 0 0 .1 0 .1-.1l4.1-2.3 4.1 2.3s.1 0 .1.1c.5.2 1.1.2 1.5-.1.5-.3.7-.9.6-1.5l-1-4.6c.4-.3 1-.9 1.6-1.5l1.9-1.7.1-.1c.4-.4.5-1 .3-1.5s-.6-.9-1.2-1h-.1l-4.7-.5-1.9-4.3s0-.1-.1-.1c-.1-.7-.6-1-1.1-1-.5 0-1 .3-1.3.8 0 0 0 .1-.1.1l-1.9 4.3-4.7.5h-.1c-.5.1-1 .5-1.2 1-.1.6 0 1.2.4 1.6z"></path></svg>
+
+            if edit && user.email === critic.user.email
+                form(action=`/movie/update-comment/${critic._id}` method="post" class="w-full flex gap-2")
+                    input(type="text" class="focus:outline-none flex-grow" autofocus name="content" id="content" value=critic.content)
+                    input(type="number" class="focus:outline-none" id="rate" value=critic.rate name="rate" min=1 max=5 required)
+                    input(type="submit" class="px-2 bg-yellow-400 text-white rounded cursor-pointer" value="Update")
+                    a(href=`/movie/${movie._id}` class="px-2 bg-gray-400 text-white rounded cursor-pointer" value="Update") Cancel
+            else 
+                div(class="pl-8 mt-2 flex justify-between")
+                    p(class="text-gray-500")= critic.content
+                    if user.email === critic.user.email && !edit
+                        div(class="flex items-center gap-px")
+                            a(href=`/movie/update-comment/${critic._id}` title="Edit comment" class="h-5 w-5 text-yellow-400") <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g><path fill="none" d="M0 0h24v24H0z"></path><path d="M7.243 18H3v-4.243L14.435 2.322a1 1 0 0 1 1.414 0l2.829 2.829a1 1 0 0 1 0 1.414L7.243 18zM3 20h18v2H3v-2z"></path></g></svg>
+                            a(href=`/movie/delete-comment/${critic._id}` title="Delete comment" class="h-5 w-5 text-red-500") <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g><path fill="none" d="M0 0h24v24H0z"></path><path d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm-8 5v6h2v-6H9zm4 0v6h2v-6h-2zM9 4v2h6V4H9z"></path></g></svg>

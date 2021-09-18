@@ -23,6 +23,17 @@ router
   .post(moviesControllers.addMovie)
 
 router.route("/movies/search").get(moviesControllers.searchMovie)
+router.route("/movie/add-comment/:id").post(moviesControllers.addComment)
+router.route("/movie/delete-comment/:id").get(moviesControllers.deleteComment)
+
+router.route("/user/favorite/:id").get(usersControllers.toggleFavorites)
+
+router
+  .route("/movie/update-comment/:id")
+  .get(moviesControllers.updateComment)
+  .post(moviesControllers.updateComment)
+
+router.route("/movie/:id").get(viewsControllers.movie)
 
 router.route("/favorites").get(viewsControllers.favorites)
 

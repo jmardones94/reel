@@ -27,4 +27,6 @@ app.use(
 
 app.use("/", router)
 
-app.listen(process.env.PORT, () => console.log("Server running"))
+app.listen(process.env.PORT, process.env.HOST || "0.0.0.0", () =>
+  console.log("Server running")
+)

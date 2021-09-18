@@ -1,5 +1,6 @@
 include partials/head.pug
 include partials/header.pug
-main(class="flex-grow flex items-center justify-center")
-    h1 Forbidden area.
+main(class="flex-grow flex flex-col items-center gap-5 justify-center font-mono")
+    h1(class="text-center") Unauthorized. You must be #{userAccess} to access this page. 
+    img(src="/assets/forbidden.gif" class="rounded" alt="Access denied")
 include partials/footer.pug
