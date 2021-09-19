@@ -1,5 +1,18 @@
 include partials/head.pug
 include partials/header.pug
-main(class="flex-grow flex items-center justify-center")
-    h1 Hola, esto es Contact
+main(class="flex-grow flex items-center justify-center flex-col font-mono gap-8")
+    div(class="w-full md:w-1/2 flex px-2 flex-col gap-16")
+        h1(class="text-xl font-semibold w-full text-center") Contact
+        h2(class="text-center") If you found a bug or have any comment, suggestion or require any further information, please feel free to write us.
+    if user.loggedIn
+        form(action="/contact" method="post" class="flex flex-col w-full md:w-1/2 gap-2")
+            input(type="text" name="subject" placeholder="Subject" class="focus:outline-none shadow px-4 py-2")
+            textarea(name="message" placeholder="Message" class="p-4 w-full h-32 focus:outline-none shadow rounded" style="resize:none;")
+            input(type="submit" value="Send" class="w-full py-2 bg-gray-800 rounded text-white cursor-pointer")
+            if error 
+                p(class="text-sm text-center text-red-500")= error
+            if message 
+                p(class="text-sm text-green-500 text-center")= message 
+    else 
+        p You have to Log In to leave a message.
 include partials/footer.pug

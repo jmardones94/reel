@@ -1,6 +1,7 @@
+require("dotenv").config()
 const express = require("express")
 const router = require("./routes/index")
-require("dotenv").config()
+const cors = require("cors")
 require("./config/database")
 const session = require("express-session")
 const mongo = require("connect-mongodb-session")(session)
@@ -12,9 +13,10 @@ const store = new mongo({
 
 const app = express()
 
+app.use(cors())
 app.use(express.static("public"))
-app.set("view engine", "pug")
 app.use(express.urlencoded({ extended: true }))
+app.set("view engine", "pug")
 app.use(express.json())
 app.use(
   session({

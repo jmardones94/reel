@@ -7,7 +7,10 @@ const router = express.Router()
 
 router.route("/").get(viewsControllers.home)
 
-router.route("/contact").get(viewsControllers.contact)
+router
+  .route("/contact")
+  .get(viewsControllers.contact)
+  .post(viewsControllers.contact)
 router
   .route("/signup")
   .get(viewsControllers.signup)

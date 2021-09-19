@@ -1,5 +1,6 @@
 const Movie = require("../models/Movie")
 const User = require("../models/User")
+const mail = require("../config/mail")
 
 const viewsControllers = {
   home: async (req, res) => {
@@ -40,11 +41,61 @@ const viewsControllers = {
   },
   contact: async (req, res) => {
     const { loggedIn, name, email, admin, favorites } = req.session
-    res.render("contact", {
-      title: "Contact",
-      error: null,
-      user: { loggedIn, name, email, admin, favorites },
-    })
+    try {
+      if (req.method === "GET") {
+        res.render("contact", {
+          title: "Contact",
+          error: null,
+          user: { loggedIn, name, email, admin, favorites },
+          message: null,
+        })
+      } else {
+        // mandar el mail
+        const { subject, message } = req.body
+        mail.transport.sendMail(
+          mail.options(
+            email,
+            subject,
+            `<div>
+        <h3>Hello, ${name}!</h3>
+        <h4>You recently wrote us the following message:</h4>
+        <em>"${message}"</em>
+        <p>We will write you back as soon as possible.</p>
+        <p>Best regards,</p>
+        <p>Reel Team</p>
+        </div>`
+          ),
+          (err, info) => {
+            if (err) {
+              console.log("[CALLBACK ERROR]")
+              console.log(err)
+              return res.render("contact", {
+                title: "Contact",
+                error: "We couldn't send your message, please try again later.",
+                user: { loggedIn, name, email, admin, favorites },
+                message: null,
+              })
+            }
+            console.log(info)
+            res.render("contact", {
+              title: "Contact",
+              error: null,
+              user: { loggedIn, name, email, admin, favorites },
+              message: "Message sent successfully!",
+            })
+          }
+        )
+      }
+    } catch (e) {
+      console.log("[CATCH ERROR]")
+      console.log(e)
+      res.render("contact", {
+        title: "Contact",
+        error: "We couldn't send your message, please try again later.",
+        user: { loggedIn, name, email, admin, favorites },
+        message: null,
+      })
+    }
   },
   login: async (req, res) => {
     const { loggedIn, name, email, admin, favorites } = req.session
