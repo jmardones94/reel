@@ -14,5 +14,5 @@ main(class="flex-grow flex items-center justify-center flex-col font-mono gap-8"
             if message 
                 p(class="text-sm text-green-500 text-center")= message 
     else 
-        p You have to Log In to leave a message.
+        p You have to <a href="/login" class="underline">Log In</a> to leave a message.
 include partials/footer.pug

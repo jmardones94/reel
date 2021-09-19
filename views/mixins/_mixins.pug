@@ -86,9 +86,11 @@ mixin review(critic)
             if edit && user.email === critic.user.email
                 form(action=`/movie/update-comment/${critic._id}` method="post" class="w-full flex gap-2")
                     input(type="text" class="focus:outline-none flex-grow" autofocus name="content" id="content" value=critic.content)
-                    input(type="number" class="focus:outline-none" id="rate" value=critic.rate name="rate" min=1 max=5 required)
-                    input(type="submit" class="px-2 bg-yellow-400 text-white rounded cursor-pointer" value="Update")
-                    a(href=`/movie/${movie._id}` class="px-2 bg-gray-400 text-white rounded cursor-pointer" value="Update") Cancel
+                    p(class="px-2 py-1 bg-red-500 text-white rounded font-bold cursor-pointer" onclick="if (document.getElementById('rate').value > 1) {document.getElementById('rate').value--}") -
+                    input(type="number" class="focus:outline-none text-center rounded pl-3" readonly id="rate" value=critic.rate name="rate" min=1 max=5 required)
+                    p(class="px-2 py-1 bg-red-500 text-white rounded font-bold cursor-pointer" onclick="if (document.getElementById('rate').value < 5) {document.getElementById('rate').value++}") +
+                    input(type="submit" class="px-2 bg-yellow-400 text-white rounded cursor-pointer flex items-center" value="Update")
+                    a(href=`/movie/${movie._id}` class="px-2 bg-gray-400 text-white rounded cursor-pointer flex items-center" value="Update") Cancel
             else 
                 div(class="pl-8 mt-2 flex justify-between")
                     p(class="text-gray-500")= critic.content
