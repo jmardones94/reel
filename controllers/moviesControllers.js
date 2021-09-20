@@ -56,8 +56,12 @@ const moviesControllers = {
   searchMovie: async (req, res) => {
     const { loggedIn, name, email, admin, favorites } = req.session
     try {
+      const { query } = req.query
       const results = await Movie.find({
-        title: { $regex: "^" + req.query.title, $options: "i" },
+        $or: [
+          { title: { $regex: query, $options: "i" } },
+          { director: { $regex: query, $options: "i" } },
+        ],
       })
       res.render("movies", {
         title: "Movies",
