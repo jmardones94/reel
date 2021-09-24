@@ -2,6 +2,8 @@ const Movie = require("../models/Movie")
 const User = require("../models/User")
 const Director = require("../models/Director")
 const Genre = require("../models/Genre")
+const { Op } = require("sequelize")
+const Critic = require("../models/Critic")
 
 const moviesControllers = {
   addMovie: async (req, res) => {
@@ -42,7 +44,7 @@ const moviesControllers = {
         disneyPlus: disneyPlus === "on",
         hboMax: hboMax === "on",
       })
-      genres.forEach((genreId) => movie.addGenre({ genreId }))
+      await movie.addGenres(genres)
       const directors = await Director.findAll({ raw: true })
       const genresList = await Genre.findAll({ raw: true })
       res.render("admin", {
@@ -70,10 +72,17 @@ const moviesControllers = {
     const { loggedIn, name, email, admin, favorites } = req.session
     try {
       const { query } = req.query
-      const results = await Movie.find({
-        $or: [
-          { title: { $regex: query, $options: "i" } },
-          { director: { $regex: query, $options: "i" } },
+      const results = await Movie.findAll({
+        where: {
+          [Op.or]: [
+            { title: { [Op.like]: `%${query}%` } },
+            // { "director.name": { [Op.like]: `%${query}%` } },
+          ],
+        },
+        include: [
+          { model: Director, as: "director", attributes: ["name"] },
+          { model: Genre, as: "genres", attributes: ["name"] },
+          { model: User, as: "critics" },
         ],
       })
       res.render("movies", {
@@ -83,6 +92,7 @@ const moviesControllers = {
         movies: results,
       })
     } catch (e) {
+      console.log(e)
       res.render("movies", {
         title: "Movies",
         user: { loggedIn, name, email, admin, favorites },
@@ -92,54 +102,77 @@ const moviesControllers = {
     }
   },
   addComment: async (req, res) => {
-    const { loggedIn, name, email, admin, favorites } = req.session
-    try {
-      const user = await User.findOne({ email })
-      const movie = await Movie.findOneAndUpdate(
-        { _id: req.params.id },
+    const { loggedIn, name, email, admin } = req.session
+    const user = await User.findOne({
+      where: { email: email },
+      include: [
         {
-          $push: {
-            critics: {
-              user: user._id,
-              rate: req.body.rate,
-              content: req.body.content,
-            },
-          },
+          model: Movie,
+          as: "favorites",
         },
-        { new: true }
-      ).populate({ path: "critics.user", select: "name email" })
-      res.redirect(`/movie/${movie._id}`)
+      ],
+    })
+    const movie = await Movie.findOne({
+      where: { id: req.params.id },
+      include: [{ model: User, as: "critics" }],
+    })
+    try {
+      await Critic.create({
+        rate: req.body.rate,
+        content: req.body.content,
+        userId: user.id,
+        movieId: movie.id,
+      })
+      res.redirect(`/movie/${movie.id}`)
     } catch (e) {
       res.render("movie", {
         title: "Movie",
-        user: { loggedIn, name, email, admin, favorites },
-        movie: {},
+        user: { loggedIn, name, email, admin },
+        favorites: user.favorites,
+        movie,
         edit: false,
         errorMessage: e.message,
       })
     }
   },
   deleteComment: async (req, res) => {
-    const { loggedIn, name, email, admin, favorites } = req.session
+    const { loggedIn, name, email, admin } = req.session
+    const user = await User.findOne({
+      where: { email: email },
+      include: [
+        {
+          model: Movie,
+          as: "favorites",
+        },
+      ],
+    })
+    const movie = await Movie.findOne({
+      where: { id: req.params.id },
+      include: [
+        { model: Director, as: "director", attributes: ["name"] },
+        { model: Genre, as: "genres" },
+        { model: User, as: "critics", attributes: ["id", "name", "email"] },
+      ],
+    })
     try {
-      const movie = await Movie.findOneAndUpdate(
-        { "critics._id": req.params.id },
-        { $pull: { critics: { _id: req.params.id } } },
-        { new: true }
-      )
-      res.redirect(`/movie/${movie._id}`)
+      await Critic.destroy({
+        where: { movieId: req.params.id, userId: user.id },
+      })
+      res.redirect(`/movie/${movie.id}`)
     } catch (e) {
+      console.log(e)
       res.render("movie", {
         title: "Movie",
-        user: { loggedIn, name, email, admin, favorites },
-        movie: {},
+        user: { loggedIn, name, email, admin },
+        favorites: user.favorites,
+        movie,
         edit: false,
         errorMessage: e.message,
       })
     }
   },
   updateComment: async (req, res) => {
-    const { loggedIn, name, email, admin, favorites } = req.session
+    const { loggedIn, name, email, admin } = req.session
     try {
       if (req.method === "GET") {
         const movie = await Movie.findOne({
@@ -147,7 +180,7 @@ const moviesControllers = {
         }).populate({ path: "critics.user", select: "name email" })
         res.render("movie", {
           title: "Movie",
-          user: { loggedIn, name, email, admin, favorites },
+          user: { loggedIn, name, email, admin },
           movie,
           edit: true,
           errorMessage: null,
@@ -163,7 +196,7 @@ const moviesControllers = {
           },
           { new: true }
         ).populate({ path: "critics.user", select: "name email" })
-        res.redirect(`/movie/${movie._id}`)
+        res.redirect(`/movie/${movie.id}`)
       }
     } catch (e) {
       res.render("movie", {

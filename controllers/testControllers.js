@@ -11,8 +11,22 @@ const testControllers = {
   },
   getFavoritesByUserId: async (req, res) => {},
   getMovies: async (req, res) => {
-    const movies = await Movie.findAll({ raw: true })
+    const movies = await Movie.findAll({
+      include: [
+        {
+          model: Director,
+          as: "director",
+          attributes: ["name"],
+        },
+      ],
+    })
     res.json({ movies })
+  },
+  getDirectors: async (req, res) => {
+    const directors = await Director.findAll({
+      include: [{ model: Movie, as: "movies" }],
+    })
+    res.json({ directors })
   },
 }
 

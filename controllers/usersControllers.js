@@ -14,7 +14,6 @@ const usersControllers = {
       req.session.name = user.dataValues.name
       req.session.email = user.dataValues.email
       req.session.admin = user.dataValues.admin
-      req.session.favorites = user.dataValues.favorites
       res.redirect("/")
     } catch (e) {
       res.render("signup", {
@@ -28,11 +27,9 @@ const usersControllers = {
     try {
       const { email, password } = req.body
       const user = await User.findOne({
-        raw: true,
         where: { email },
-        include: Movie,
+        include: [{ model: Movie, as: "favorites" }],
       })
-      console.log(user)
       if (!user) throw new Error("Invalid credentials.")
       const isValidPassword = await bcryptjs.compare(password, user.password)
       if (!isValidPassword) throw new Error("Invalid credentials.")
@@ -40,7 +37,7 @@ const usersControllers = {
       req.session.name = user.name
       req.session.email = user.email
       req.session.admin = user.admin
-      // req.session.favorites = user.favorites.map((f) => f.toString())
+      // return res.json({ user })
       res.redirect("/")
     } catch (e) {
       res.render("login", {
@@ -51,25 +48,39 @@ const usersControllers = {
     }
   },
   toggleFavorites: async (req, res) => {
-    const { loggedIn, name, email, admin, favorites } = req.session
+    const { loggedIn, name, email, admin } = req.session
     try {
-      let user
-      if (favorites.map((f) => f.toString()).includes(req.params.id)) {
-        user = await User.findOneAndUpdate(
-          { email },
-          { $pull: { favorites: req.params.id } },
-          { new: true }
+      const user = await User.findOne({
+        where: { email: email },
+        include: [
+          {
+            model: Movie,
+            as: "favorites",
+            attributes: ["id"],
+          },
+        ],
+      })
+      console.log("[FAVS]")
+      console.log(user.dataValues.favorites[0].dataValues)
+      if (
+        user.dataValues.favorites.some(
+          (m) => m.dataValues.id.toString() === req.params.id
+        )
+      ) {
+        console.log("Entré al delete.")
+        await user.setFavorites(
+          user.dataValues.favorites.filter(
+            (m) => m.dataValues.id.toString() !== req.params.id
+          )
         )
       } else {
-        user = await User.findOneAndUpdate(
-          { email },
-          { $addToSet: { favorites: req.params.id } },
-          { new: true }
-        )
+        console.log("Entré al add.")
+        await user.addFavorite(req.params.id)
       }
-      req.session.favorites = user.favorites.map((f) => f.toString())
+      // req.session.favorites = user.favorites.map((f) => f.toString())
       res.redirect(`/movie/${req.params.id}`)
     } catch (e) {
+      console.log(e)
       res.redirect("/")
     }
   },

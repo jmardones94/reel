@@ -7,6 +7,7 @@ const User = require("../models/User")
 // Movie.belongsTo(Director, { through: "director" })
 // Movie.belongsToMany(User, { through: Critic })
 // User.belongsToMany(Movie, { through: Critic })
+
 // User.belongsToMany(Movie, { through: "favorites" })
 // Movie.belongsToMany(User, { through: "favorites" })
 // Movie.belongsToMany(Genre, { through: "movies_genres" })
@@ -15,5 +16,23 @@ const User = require("../models/User")
 Director.hasMany(Movie, { as: "movies", foreignKey: "directorId" })
 Movie.belongsTo(Director, { as: "director" })
 
-User.hasMany(Critic, { as: "critics", foreignKey: "userId" })
-Critic.belongsTo(User, { as: "author" })
+User.belongsToMany(Movie, {
+  through: Critic,
+  as: "user_critics",
+  foreignKey: "userId",
+})
+
+Movie.belongsToMany(User, {
+  through: Critic,
+  as: "critics",
+  foreignKey: "movieId",
+})
+
+User.belongsToMany(Movie, {
+  through: "user_favorites_movies",
+  as: "favorites",
+})
+Movie.belongsToMany(User, { through: "user_favorites_movies" })
+
+Movie.belongsToMany(Genre, { through: "movies_genres", as: "genres" })
+Genre.belongsToMany(Movie, { through: "movies_genres", as: "movies" })

@@ -14,7 +14,7 @@ main(class="flex-grow flex items-center flex-col justify-center gap-16 w-full fo
             input(type="password" id="password" name="password" class="border border-gray-400 rounded px-3 py-px focus:outline-none w-64 text-center" minlength="6" required)
         input(type="submit" value="Register" class="py-2 bg-green-500 text-white rounded cursor-pointer")
         if error 
-            p(class="text-red-500 text-center text-sm")= error 
+            p(class="text-red-500 text-center text-sm")= error==='Validation error' ? 'Email already in use.' : error 
         p(class="text-center") Already have an account? <a href="/login" class="underline">Log in</a>.
 
 include partials/footer.pug

@@ -6,53 +6,76 @@ const Genre = require("../models/Genre")
 
 const viewsControllers = {
   home: async (req, res) => {
-    const { loggedIn, name, email, admin, favorites } = req.session
+    const { loggedIn, name, email, admin } = req.session
     res.render("index", {
       title: "Home",
       error: null,
-      user: { loggedIn, name, email, admin, favorites },
+      user: { loggedIn, name, email, admin },
     })
   },
   movies: async (req, res) => {
-    const { loggedIn, name, email, admin, favorites } = req.session
-    const movies = await Movie.findAll({ raw: true })
-    console.log(movies)
+    const { loggedIn, name, email, admin } = req.session
+    const movies = await Movie.findAll({
+      include: [
+        { model: Director, as: "director", attributes: ["name"] },
+        { model: Genre, as: "genres", attributes: ["name"] },
+        { model: User, as: "critics" },
+      ],
+    })
     res.render("movies", {
       title: "Movies",
-      user: { loggedIn, name, email, admin, favorites },
+      user: { loggedIn, name, email, admin },
       error: null,
       movies,
     })
   },
   movie: async (req, res) => {
-    const { loggedIn, name, email, admin, favorites } = req.session
-    try {
-      const movie = await Movie.findByPk({ _id: req.params.id })
-      console.log(movie)
-      res.render("index", {
-        title: "Home",
-        error: null,
-        user: { loggedIn, name, email, admin, favorites },
+    const { loggedIn, name, email, admin } = req.session
+    let user
+    if (loggedIn) {
+      user = await User.findOne({
+        where: { email: email },
+        include: [
+          {
+            model: Movie,
+            as: "favorites",
+            attributes: ["id"],
+          },
+        ],
+        attributes: ["id"],
       })
-      // res.render("movie", {
-      //   title: "Movie",
-      //   user: { loggedIn, name, email, admin, favorites },
-      //   movie,
-      //   edit: false,
-      //   errorMessage: null,
-      // })
+    }
+    try {
+      const movie = await Movie.findOne({
+        where: { id: req.params.id },
+        include: [
+          { model: Director, as: "director", attributes: ["name"] },
+          { model: Genre, as: "genres" },
+          { model: User, as: "critics", attributes: ["id", "name", "email"] },
+        ],
+      })
+      // return res.json(movie)
+      res.render("movie", {
+        title: "Movie",
+        user: { loggedIn, name, email, admin },
+        movie,
+        favorites: user?.favorites || [],
+        edit: false,
+        errorMessage: null,
+      })
     } catch (e) {
+      console.log(e)
       res.redirect("/")
     }
   },
   contact: async (req, res) => {
-    const { loggedIn, name, email, admin, favorites } = req.session
+    const { loggedIn, name, email, admin } = req.session
     try {
       if (req.method === "GET") {
         res.render("contact", {
           title: "Contact",
           error: null,
-          user: { loggedIn, name, email, admin, favorites },
+          user: { loggedIn, name, email, admin },
           message: null,
         })
       } else {
@@ -76,14 +99,14 @@ const viewsControllers = {
               return res.render("contact", {
                 title: "Contact",
                 error: "We couldn't send your message, please try again later.",
-                user: { loggedIn, name, email, admin, favorites },
+                user: { loggedIn, name, email, admin },
                 message: null,
               })
             }
             res.render("contact", {
               title: "Contact",
               error: null,
-              user: { loggedIn, name, email, admin, favorites },
+              user: { loggedIn, name, email, admin },
               message: "Message sent successfully!",
             })
           }
@@ -93,33 +116,32 @@ const viewsControllers = {
       res.render("contact", {
         title: "Contact",
         error: "We couldn't send your message, please try again later.",
-        user: { loggedIn, name, email, admin, favorites },
+        user: { loggedIn, name, email, admin },
         message: null,
       })
     }
   },
   login: async (req, res) => {
-    const { loggedIn, name, email, admin, favorites } = req.session
+    const { loggedIn, name, email, admin } = req.session
     try {
       if (loggedIn) return res.redirect("/")
       res.render("login", {
         title: "Log In",
         error: null,
-        user: { loggedIn, name, email, admin, favorites },
+        user: { loggedIn, name, email, admin },
       })
     } catch (e) {
       res.redirect("/")
     }
   },
   signup: async (req, res) => {
-    const { loggedIn, name, email, admin, favorites } = req.session
+    const { loggedIn, name, email, admin } = req.session
     try {
       if (loggedIn) return res.redirect("/")
-      // res.redirect("/")
       res.render("signup", {
         title: "Sign Up",
         error: null,
-        user: { loggedIn, name, email, admin, favorites },
+        user: { loggedIn, name, email, admin },
       })
     } catch (e) {
       res.redirect("/")
@@ -129,68 +151,62 @@ const viewsControllers = {
     req.session.destroy(() => res.redirect("/"))
   },
   favorites: async (req, res) => {
-    const { loggedIn, name, email, admin, favorites } = req.session
+    const { loggedIn, name, email, admin } = req.session
     try {
-      if (!loggedIn)
-        throw new Error("You must be logged in to access this page.")
-      const user = await User.findAll({ raw: true, email })
-      console.log(user)
-      res.render("index", {
-        title: "Home",
-        error: null,
-        user: { loggedIn, name, email, admin, favorites },
+      const user = await User.findOne({
+        where: { email: email },
+        include: [
+          {
+            model: Movie,
+            as: "favorites",
+            attributes: ["title", "photo", "id"],
+          },
+        ],
       })
-      // res.render("favorites", {
-      //   title: "Favorites",
-      //   user: { loggedIn, name, email, admin, favorites },
-      //   favorites: user.favorites,
-      // })
+      res.render("favorites", {
+        title: "Favorites",
+        user: { loggedIn, name, email, admin },
+        favorites: user.favorites,
+      })
     } catch (e) {
+      console.log(e)
       res.render("index", {
         title: "Home",
         error: null,
-        user: { loggedIn, name, email, admin, favorites },
+        user: { loggedIn, name, email, admin },
       })
-      // res.render("forbidden", {
-      //   title: "Forbidden",
-      //   user: { loggedIn, name, email, admin, favorites },
-      //   userAccess: "logged in",
-      // })
     }
   },
   admin: async (req, res) => {
-    const { loggedIn, name, email, admin, favorites } = req.session
+    const { loggedIn, name, email, admin } = req.session
     try {
-      if (loggedIn && admin) {
-        const directors = await Director.findAll({ raw: true })
-        const genres = await Genre.findAll({ raw: true })
-        console.log(genres)
-        // res.redirect("/")
-        res.render("admin", {
-          title: "Admin",
-          user: { loggedIn, name, email, admin },
-          directors,
-          genres,
-          successMessage: null,
-          errorMessage: null,
-        })
-      } else {
-        throw new Error("This is an admin section and you don't have access.")
-      }
+      const directors = await Director.findAll({ raw: true })
+      const genres = await Genre.findAll({
+        raw: true,
+        order: [["name", "ASC"]],
+      })
+      res.render("admin", {
+        title: "Admin",
+        user: { loggedIn, name, email, admin },
+        directors,
+        genres,
+        successMessage: null,
+        errorMessage: null,
+      })
     } catch (e) {
       res.render("forbidden", {
         title: "Forbidden",
         error: e.message,
-        user: { loggedIn, name, email, admin, favorites },
+        user: { loggedIn, name, email, admin },
         userAccess: "admin",
       })
     }
   },
   e404: async (req, res) => {
-    const { loggedIn, name, email, admin, favorites } = req.session
+    const { loggedIn, name, email, admin } = req.session
     res.render("e404", {
       title: "Error 404",
-      user: { loggedIn, name, email, admin, favorites },
+      user: { loggedIn, name, email, admin },
     })
   },
 }
