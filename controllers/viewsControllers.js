@@ -30,7 +30,7 @@ const viewsControllers = {
       })
       res.render("movie", {
         title: "Movie",
-        user: { loggedIn, name, email, admin, favorites: favorites || [] },
+        user: { loggedIn, name, email, admin, favorites },
         movie,
         edit: false,
         errorMessage: null,
