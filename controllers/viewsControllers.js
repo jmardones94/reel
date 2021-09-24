@@ -30,7 +30,7 @@ const viewsControllers = {
       })
       res.render("movie", {
         title: "Movie",
-        user: { loggedIn, name, email, admin, favorites },
+        user: { loggedIn, name, email, admin, favorites: favorites || [] },
         movie,
         edit: false,
         errorMessage: null,
@@ -67,8 +67,6 @@ const viewsControllers = {
           ),
           (err, info) => {
             if (err) {
-              console.log("[CALLBACK ERROR]")
-              console.log(err)
               return res.render("contact", {
                 title: "Contact",
                 error: "We couldn't send your message, please try again later.",
@@ -76,7 +74,6 @@ const viewsControllers = {
                 message: null,
               })
             }
-            console.log(info)
             res.render("contact", {
               title: "Contact",
               error: null,
@@ -87,8 +84,6 @@ const viewsControllers = {
         )
       }
     } catch (e) {
-      console.log("[CATCH ERROR]")
-      console.log(e)
       res.render("contact", {
         title: "Contact",
         error: "We couldn't send your message, please try again later.",
