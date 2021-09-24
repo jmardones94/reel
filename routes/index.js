@@ -2,6 +2,7 @@ const express = require("express")
 const moviesControllers = require("../controllers/moviesControllers")
 const viewsControllers = require("../controllers/viewsControllers")
 const usersControllers = require("../controllers/usersControllers")
+const testControllers = require("../controllers/testControllers")
 
 const router = express.Router()
 
@@ -41,6 +42,12 @@ router.route("/movie/:id").get(viewsControllers.movie)
 router.route("/favorites").get(viewsControllers.favorites)
 
 router.route("/admin").get(viewsControllers.admin)
+
+// TEST AREA
+
+router.route("/test/users").get(testControllers.getUsers)
+router.route("/test/movies").get(testControllers.getMovies)
+// END TEST AREA
 
 router.route("*").get(viewsControllers.e404)
 

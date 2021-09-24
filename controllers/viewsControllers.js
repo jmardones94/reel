@@ -1,6 +1,8 @@
 const Movie = require("../models/Movie")
 const User = require("../models/User")
 const mail = require("../config/mail")
+const Director = require("../models/Director")
+const Genre = require("../models/Genre")
 
 const viewsControllers = {
   home: async (req, res) => {
@@ -13,7 +15,8 @@ const viewsControllers = {
   },
   movies: async (req, res) => {
     const { loggedIn, name, email, admin, favorites } = req.session
-    const movies = await Movie.find().sort("-year").limit(10)
+    const movies = await Movie.findAll({ raw: true })
+    console.log(movies)
     res.render("movies", {
       title: "Movies",
       user: { loggedIn, name, email, admin, favorites },
@@ -24,17 +27,20 @@ const viewsControllers = {
   movie: async (req, res) => {
     const { loggedIn, name, email, admin, favorites } = req.session
     try {
-      const movie = await Movie.findOne({ _id: req.params.id }).populate({
-        path: "critics.user",
-        select: "name email",
-      })
-      res.render("movie", {
-        title: "Movie",
+      const movie = await Movie.findByPk({ _id: req.params.id })
+      console.log(movie)
+      res.render("index", {
+        title: "Home",
+        error: null,
         user: { loggedIn, name, email, admin, favorites },
-        movie,
-        edit: false,
-        errorMessage: null,
       })
+      // res.render("movie", {
+      //   title: "Movie",
+      //   user: { loggedIn, name, email, admin, favorites },
+      //   movie,
+      //   edit: false,
+      //   errorMessage: null,
+      // })
     } catch (e) {
       res.redirect("/")
     }
@@ -67,8 +73,6 @@ const viewsControllers = {
           ),
           (err, info) => {
             if (err) {
-              console.log("[CALLBACK ERROR]")
-              console.log(err)
               return res.render("contact", {
                 title: "Contact",
                 error: "We couldn't send your message, please try again later.",
@@ -76,7 +80,6 @@ const viewsControllers = {
                 message: null,
               })
             }
-            console.log(info)
             res.render("contact", {
               title: "Contact",
               error: null,
@@ -87,8 +90,6 @@ const viewsControllers = {
         )
       }
     } catch (e) {
-      console.log("[CATCH ERROR]")
-      console.log(e)
       res.render("contact", {
         title: "Contact",
         error: "We couldn't send your message, please try again later.",
@@ -114,6 +115,7 @@ const viewsControllers = {
     const { loggedIn, name, email, admin, favorites } = req.session
     try {
       if (loggedIn) return res.redirect("/")
+      // res.redirect("/")
       res.render("signup", {
         title: "Sign Up",
         error: null,
@@ -131,27 +133,44 @@ const viewsControllers = {
     try {
       if (!loggedIn)
         throw new Error("You must be logged in to access this page.")
-      const user = await User.findOne({ email }).populate("favorites")
-      res.render("favorites", {
-        title: "Favorites",
+      const user = await User.findAll({ raw: true, email })
+      console.log(user)
+      res.render("index", {
+        title: "Home",
+        error: null,
         user: { loggedIn, name, email, admin, favorites },
-        favorites: user.favorites,
       })
+      // res.render("favorites", {
+      //   title: "Favorites",
+      //   user: { loggedIn, name, email, admin, favorites },
+      //   favorites: user.favorites,
+      // })
     } catch (e) {
-      res.render("forbidden", {
-        title: "Forbidden",
+      res.render("index", {
+        title: "Home",
+        error: null,
         user: { loggedIn, name, email, admin, favorites },
-        userAccess: "logged in",
       })
+      // res.render("forbidden", {
+      //   title: "Forbidden",
+      //   user: { loggedIn, name, email, admin, favorites },
+      //   userAccess: "logged in",
+      // })
     }
   },
   admin: async (req, res) => {
     const { loggedIn, name, email, admin, favorites } = req.session
     try {
       if (loggedIn && admin) {
+        const directors = await Director.findAll({ raw: true })
+        const genres = await Genre.findAll({ raw: true })
+        console.log(genres)
+        // res.redirect("/")
         res.render("admin", {
           title: "Admin",
           user: { loggedIn, name, email, admin },
+          directors,
+          genres,
           successMessage: null,
           errorMessage: null,
         })

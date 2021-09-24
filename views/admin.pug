@@ -11,7 +11,11 @@ main(class="flex-grow flex items-center flex-col justify-center gap-12 w-full fo
             input(type="text" id="year" name="year" required class="border border-gray-400 rounded px-3 py-px focus:outline-none md:w-64 text-center")
         div(class="flex justify-between gap-2 md:gap-4 items-center")
             label(for="director") Director:
-            input(type="text" id="director" name="director" required class="border border-gray-400 rounded px-3 py-px focus:outline-none md:w-64 text-center")
+            //- input(type="text" id="director" name="director" required class="border border-gray-400 rounded px-3 py-px focus:outline-none md:w-64 text-center")
+            select(name="director" class="border border-gray-400 rounded px-3 py-1 focus:outline-none md:w-64 text-center")
+                option(value="default") Who directed this film?
+                each director in directors 
+                    option(value=director.id)= director.name   
         div(class="flex justify-between gap-2 md:gap-4 items-center")
             label(for="plot") Plot:
             input(type="text" id="plot" name="plot" required class="border border-gray-400 rounded px-3 py-px focus:outline-none md:w-64 text-center")
@@ -27,9 +31,16 @@ main(class="flex-grow flex items-center flex-col justify-center gap-12 w-full fo
             label(for="photo") Photo:
             input(type="text" id="photo" name="photo" required class="border border-gray-400 rounded px-3 py-px focus:outline-none md:w-64 text-center")
         div(class="flex justify-between gap-2 md:gap-4 items-center")
-            label(for="genres") Genres:
-            input(type="text" id="genres" name="genres" required class="border border-gray-400 rounded px-3 py-px focus:outline-none md:w-64 text-center")
-        p(class="text-sm text-gray-300 -mt-2 hidden md:block text-right") Must be in CSV format, e.g. 'Drama,Action,Fantasy'
+            if genres.length
+                p() Genres:
+                each genre in genres
+                    div(class="flex gap-2 items-center justify-center flex-wrap")
+                        label(for=genre.id)= genre.name 
+                        input(type="checkbox" id=genre.id name="genres" value=genre.id) 
+            else 
+                p() Genres:
+                p We have no genres, you have to add one first.
+        //- p(class="text-sm text-gray-300 -mt-2 hidden md:block text-right") Must be in CSV format, e.g. 'Drama,Action,Fantasy'
         h4(class="mt-4 w-full") Is available on:
         div(class="flex flex-wrap flex-col md:flex-row")
             div(class="flex gap-2 md:w-1/3 items-center justify-between md:justify-center")

@@ -1,5 +1,7 @@
 const Movie = require("../models/Movie")
 const User = require("../models/User")
+const Director = require("../models/Director")
+const Genre = require("../models/Genre")
 
 const moviesControllers = {
   addMovie: async (req, res) => {
@@ -22,32 +24,43 @@ const moviesControllers = {
         disneyPlus,
         hboMax,
       } = req.body
-      const movie = await new Movie({
+      if (!genres) throw new Error("You must specify at least one genre")
+      if (director === "default")
+        throw new Error("You must specify a director.")
+      const movie = await Movie.create({
         title,
         year,
-        director,
+        directorId: director,
         photo,
-        plot,
-        duration,
         trailer,
-        genres: genres.split(","),
+        duration,
+        plot,
         netflix: netflix === "on",
         amazonPrime: amazonPrime === "on",
         hulu: hulu === "on",
         starPlus: starPlus === "on",
         disneyPlus: disneyPlus === "on",
         hboMax: hboMax === "on",
-      }).save()
+      })
+      genres.forEach((genreId) => movie.addGenre({ genreId }))
+      const directors = await Director.findAll({ raw: true })
+      const genresList = await Genre.findAll({ raw: true })
       res.render("admin", {
         title: "Admin",
         user: { loggedIn, name, email, admin, favorites },
+        directors,
+        genres: genresList,
         successMessage: `${movie.title} added!`,
         errorMessage: null,
       })
     } catch (e) {
+      const directors = await Director.findAll({ raw: true })
+      const genresList = await Genre.findAll({ raw: true })
       res.render("admin", {
         title: "Admin",
         user: { loggedIn, name, email, admin, favorites },
+        directors,
+        genres: genresList,
         successMessage: null,
         errorMessage: e.message,
       })
