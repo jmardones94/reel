@@ -173,36 +173,51 @@ const moviesControllers = {
   },
   updateComment: async (req, res) => {
     const { loggedIn, name, email, admin } = req.session
+    const user = await User.findOne({
+      where: { email: email },
+      include: [
+        {
+          model: Movie,
+          as: "favorites",
+        },
+      ],
+    })
+    const movie = await Movie.findOne({
+      where: { id: req.params.id },
+      include: [
+        { model: Director, as: "director", attributes: ["name"] },
+        { model: Genre, as: "genres" },
+        { model: User, as: "critics", attributes: ["id", "name", "email"] },
+      ],
+    })
     try {
       if (req.method === "GET") {
-        const movie = await Movie.findOne({
-          "critics._id": req.params.id,
-        }).populate({ path: "critics.user", select: "name email" })
         res.render("movie", {
           title: "Movie",
           user: { loggedIn, name, email, admin },
           movie,
+          favorites: user.favorites,
           edit: true,
           errorMessage: null,
         })
       } else {
-        const movie = await Movie.findOneAndUpdate(
-          { "critics._id": req.params.id },
-          {
-            $set: {
-              "critics.$.content": req.body.content,
-              "critics.$.rate": req.body.rate,
-            },
-          },
-          { new: true }
-        ).populate({ path: "critics.user", select: "name email" })
+        const { content, rate } = req.body
+        const critic = await Critic.findOne({
+          where: { movieId: req.params.id, userId: user.id },
+        })
+        critic.rate = rate
+        critic.content = content
+        await critic.save()
         res.redirect(`/movie/${movie.id}`)
       }
     } catch (e) {
+      console.log("[ERROR!]")
+      console.log(e)
       res.render("movie", {
         title: "Movie",
-        user: { loggedIn, name, email, admin, favorites },
-        movie: {},
+        user: { loggedIn, name, email, admin },
+        movie,
+        favorites: user.favorites,
         errorMessage: e.message,
       })
     }

@@ -16,7 +16,7 @@ mixin movieCard(movie)
                 p(class="text-sm") Genres: 
                     span(class="text-gray-500")= movie.genres.reduce((acc,current) => `${acc}, ${current.name}`, '').slice(1,)
                 p(class="text-sm") Ranking: 
-                    span(class="text-gray-500")= movie.critics.length ? `${movie.critics.reduce((a,b) => a + b.rate/movie.critics.length, 0)}/5 (${movie.critics.length} votes)` : 'Not Rated'
+                    span(class="text-gray-500")= movie.critics.length ? `${movie.critics.reduce((a,b) => a + b.critic.rate/movie.critics.length, 0)}/5 (${movie.critics.length} votes)` : 'Not Rated'
             div(class="flex gap-px p-3")
                 each platform in platforms.filter(p => movie[p.name])
                     a(href=platform.url target="_blank")
@@ -43,7 +43,7 @@ mixin comments(movie)
                 p(class="text-sm font-semibold") Genres: 
                     span(class="text-gray-500 font-normal")= movie.genres.reduce((acc,current) => `${acc}, ${current.name}`, '').slice(1,)
                 p(class="text-sm font-semibold") Ranking: 
-                    span(class="text-gray-500 font-normal")= movie.critics && movie.critics.length ? `${movie.critics.reduce((a,b) => a + b.rate/movie.critics.length, 0)}/5 (${movie.critics.length} votes)` : 'Not Rated'
+                    span(class="text-gray-500 font-normal")= movie.critics && movie.critics.length ? `${movie.critics.reduce((a,b) => a + b.critic.rate/movie.critics.length, 0)}/5 (${movie.critics.length} votes)` : 'Not Rated'
                 p(class="text-sm font-semibold") Plot: 
                     span(class="text-gray-500 font-normal")= movie.plot 
                 p(class="text-sm font-semibold") Duration: 

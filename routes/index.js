@@ -2,7 +2,6 @@ const express = require("express")
 const moviesControllers = require("../controllers/moviesControllers")
 const viewsControllers = require("../controllers/viewsControllers")
 const usersControllers = require("../controllers/usersControllers")
-const testControllers = require("../controllers/testControllers")
 const isAdmin = require("../controllers/isAdmin")
 const isLoggedIn = require("../controllers/isLoggedIn")
 
@@ -50,13 +49,6 @@ router.route("/movie/:id").get(viewsControllers.movie)
 router.route("/favorites").get(isLoggedIn, viewsControllers.favorites)
 
 router.route("/admin").get(isLoggedIn, isAdmin, viewsControllers.admin)
-
-// TEST AREA
-
-router.route("/test/users").get(testControllers.getUsers)
-router.route("/test/movies").get(testControllers.getMovies)
-router.route("/test/directors").get(testControllers.getDirectors)
-// END TEST AREA
 
 router.route("*").get(viewsControllers.e404)
 

@@ -61,7 +61,9 @@ const usersControllers = {
         ],
       })
       console.log("[FAVS]")
-      console.log(user.dataValues.favorites[0].dataValues)
+      // console.log(user.dataValues.favorites[0].dataValues)
+      console.log("[USER]")
+      console.log(user)
       if (
         user.dataValues.favorites.some(
           (m) => m.dataValues.id.toString() === req.params.id
